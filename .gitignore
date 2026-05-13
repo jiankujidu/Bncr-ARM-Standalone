@@ -1,0 +1,35 @@
+# Bncr-ARM Git Ignore
+
+# Data directory
+BncrData/
+data/
+logs/
+
+# Binary files
+dist/
+*.exe
+bncr-arm
+bncr-arm-*
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temp
+*.tmp
+*.temp

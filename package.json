@@ -1,0 +1,30 @@
+{
+  "name": "bncr-arm",
+  "version": "2.0.0",
+  "description": "Bncr-ARM Standalone - ARM Linux聊天机器人框架",
+  "main": "bncr-arm.js",
+  "bin": {
+    "bncr-arm": "./bncr-arm.js"
+  },
+  "scripts": {
+    "start": "node bncr-arm.js",
+    "build": "pkg . --out-path=dist",
+    "build:linux": "pkg -t node18-linux-x64 . --out-path=dist",
+    "build:arm64": "pkg -t node18-linux-arm64 . --out-path=dist",
+    "build:armv7": "pkg -t node18-linux-armv7 . --out-path=dist",
+    "build:all": "npm run build:linux && npm run build:arm64 && npm run build:armv7",
+    "install:pkg": "npm install -g pkg"
+  },
+  "keywords": ["bncr", "chatbot", "arm", "linux", "robot"],
+  "author": "Bncr-ARM Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "pkg": {
+    "scripts": ["bncr-arm.js"],
+    "assets": ["BncrData/**/*"],
+    "targets": ["node18-linux-x64", "node18-linux-arm64", "node18-linux-armv7"],
+    "outputPath": "dist"
+  }
+}
