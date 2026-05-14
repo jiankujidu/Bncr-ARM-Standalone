@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Bncr-ARM 管理面板</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f5f7fa;min-height:100vh}
+.header{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:16px 24px;position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center}
+.header h1{font-size:1.3em}.logout{background:rgba(255,255,255,0.2);padding:8px 16px;border-radius:6px;cursor:pointer;font-size:0.9em}
+.container{max-width:1200px;margin:0 auto;padding:80px 20px 30px}
+.card{background:#fff;border-radius:12px;padding:20px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+.card h2{color:#667eea;margin-bottom:16px;font-size:1.2em;display:flex;align-items:center;gap:10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px}
+.stat-card{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:16px;border-radius:10px;text-align:center}
+.stat-value{font-size:1.6em;font-weight:bold}
+table{width:100%;border-collapse:collapse;font-size:0.9em}th,td{padding:10px;text-align:left;border-bottom:1px solid #eee}
+th{color:#667eea;background:#f8f9fa;font-weight:600}
+.status-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:0.8em}
+.status-on{background:#d4edda;color:#155724}.status-off{background:#f8d7da;color:#721c24}
+.btn{padding:6px 12px;border:none;border-radius:6px;cursor:pointer;font-size:0.85em;margin-right:5px}
+.btn-primary{background:#667eea;color:#fff}.btn-danger{background:#e74c3c;color:#fff}.btn-success{background:#27ae60;color:#fff}
+.btn-sm{padding:4px 10px;font-size:0.8em}
+pre{background:#f8f9fa;padding:12px;border-radius:8px;overflow-x:auto;font-size:0.85em;border:1px solid #e9ecef;max-height:300px}
+.empty{color:#888;text-align:center;padding:30px}
+.editor{width:100%;min-height:250px;font-family:monospace;font-size:13px;padding:12px;border:1px solid #ddd;border-radius:8px;resize:vertical}
+.tabs{display:flex;border-bottom:2px solid #eee;margin-bottom:20px;flex-wrap:wrap;background:#fff;padding:0 20px;position:fixed;top:60px;left:0;right:0;z-index:99}
+.tab{padding:12px 20px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;font-size:0.95em;user-select:none}
+.tab.active{border-bottom-color:#667eea;color:#667eea;font-weight:600;background:#f8f9fa}
+.tab-content{display:none}.tab-content.active{display:block;padding-top:20px}
+.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px}
+.modal.show{display:flex}
+.modal-content{background:#fff;padding:20px;border-radius:12px;max-width:800px;width:100%;max-height:90vh;overflow:auto}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.modal-title{font-size:1.2em;color:#667eea}
+.close-btn{background:none;border:none;font-size:1.5em;cursor:pointer;color:#888}
+.token-box{background:#f8f9fa;padding:12px;border-radius:8px;font-family:monospace;font-size:0.85em;word-break:break-all;margin-bottom:10px;border:1px solid #e9ecef}
+.msg-item{padding:10px;border-bottom:1px solid #eee}.msg-item:last-child{border-bottom:none}
+.msg-time{color:#888;font-size:0.75em}.msg-content{margin-top:4px;font-size:0.9em;word-break:break-all}
+.token-item{padding:12px;border:1px solid #e9ecef;border-radius:8px;margin-bottom:10px;background:#fff}
+.token-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.token-info{color:#666;font-size:0.85em}
+.input-group{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.input-group input{flex:1;padding:10px;border:1px solid #ddd;border-radius:6px;min-width:120px}
+</style>
+</head>
+<body>
+<div class="header"><h1>🤖 Bncr-ARM</h1><span class="logout" onclick="doLogout()">退出登录</span></div>
+<div class="tabs">
+<div class="tab active" data-tab="stats">📊 统计</div>
+<div class="tab" data-tab="adapters">🔌 适配器</div>
+<div class="tab" data-tab="plugins">🔧 插件</div>
+<div class="tab" data-tab="messages">💬 消息</div>
+<div class="tab" data-tab="logs">📝 日志</div>
+<div class="tab" data-tab="database">🗄️ 数据库</div>
+<div class="tab" data-tab="tokens">🔑 Token</div>
+</div>
+<div class="container">
+<div id="tab-stats" class="tab-content active"><div class="card"><h2>系统统计</h2><div class="grid" id="statsGrid"><div class="empty">加载中...</div></div></div></div>
+<div id="tab-adapters" class="tab-content"><div class="card"><h2>适配器管理</h2><div id="adaptersList"><div class="empty">加载中...</div></div></div></div>
+<div id="tab-plugins" class="tab-content"><div class="card"><h2>插件管理 <button class="btn btn-primary btn-sm" onclick="newPlugin()">+ 新建插件</button></h2><div id="pluginsList"><div class="empty">加载中...</div></div></div></div>
+<div id="tab-messages" class="tab-content"><div class="card"><h2>消息记录 <button class="btn btn-danger btn-sm" onclick="clearMessages()">清空</button></h2><div id="messagesList"><div class="empty">加载中...</div></div></div></div>
+<div id="tab-logs" class="tab-content"><div class="card"><h2>系统日志</h2><pre id="logsContent">加载中...</pre></div></div>
+<div id="tab-database" class="tab-content"><div class="card"><h2>数据库操作</h2><div class="input-group"><input id="dbTable" placeholder="表名"><input id="dbKey" placeholder="键名"><button class="btn btn-primary" onclick="dbGet()">查询</button><button class="btn btn-success" onclick="dbSet()">设置</button></div><pre id="dbResult"></pre></div></div>
+<div id="tab-tokens" class="tab-content"><div class="card"><h2>Token管理 <button class="btn btn-danger btn-sm" onclick="clearTokens()">清空所有</button></h2><div class="token-box" id="currentToken"></div><div id="tokensList"><div class="empty">加载中...</div></div></div></div>
+</div>
+<div class="modal" id="pluginModal">
+<div class="modal-content">
+<div class="modal-header"><div class="modal-title">编辑插件</div><button class="close-btn" onclick="closeModal()">&times;</button></div>
+<input id="pluginName" placeholder="插件名称" style="width:100%;padding:10px;margin-bottom:10px;border:1px solid #ddd;border-radius:6px">
+<textarea id="pluginCode" class="editor" placeholder="插件代码"></textarea>
+<div style="margin-top:16px;display:flex;gap:10px;justify-content:flex-end">
+<button class="btn btn-primary" onclick="savePlugin()">保存</button>
+<button class="btn" onclick="closeModal()" style="background:#888;color:#fff">取消</button>
+</div>
+</div>
+</div>
+
+<script>
+(function(){
+var token = localStorage.getItem('token');
+if (!token) { window.location.href = '/'; return; }
+
+function api(path, opts) {
+    opts = opts || {};
+    opts.headers = opts.headers || {};
+    opts.headers['Authorization'] = 'Bearer ' + token;
+    return fetch(path, opts).then(function(r) {
+        if (r.status === 401) {
+            localStorage.removeItem('token');
+            window.location.href = '/';
+            return;
+        }
+        return r.json();
+    }).catch(function(e) {
+        console.error('API Error:', e);
+        alert('请求失败: ' + e.message);
+    });
+}
+
+document.querySelectorAll('.tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+        var tabName = this.getAttribute('data-tab');
+        document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+        document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
+        this.classList.add('active');
+        document.getElementById('tab-' + tabName).classList.add('active');
+        if (tabName === 'stats') loadStats();
+        if (tabName === 'adapters') loadAd
