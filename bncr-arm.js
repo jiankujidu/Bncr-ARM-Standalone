@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Bncr-ARM Standalone v3.2.0
- * Termux优化版本 - 使用Cookie认证
+ * Bncr-ARM Standalone v3.3.0
+ * Termux优化版本 - 使用Cookie认证 + Token管理
  */
 
 const http = require('http');
@@ -15,7 +15,7 @@ const PORT = parseInt(process.env.PORT || 9090);
 
 const CONFIG = {
     name: 'Bncr-ARM',
-    version: '3.2.0',
+    version: '3.3.0',
     port: PORT,
     admin: { username: 'admin', password: 'admin123' }
 };
@@ -108,7 +108,7 @@ class Database {
     if (!t) return null;
     if (t === "ping") return "Pong!";
     if (t === "time") return new Date().toLocaleString("zh-CN");
-    if (t === "版本") return "Bncr-ARM v3.2.0";
+    if (t === "版本") return "Bncr-ARM v3.3.0";
     const g = t.match(/^get\\s+(\\S+)\\s+(\\S+)$/);
     if (g) return JSON.stringify(db.get(g[1], g[2]));
     const s = t.match(/^set\\s+(\\S+)\\s+(\\S+)\\s+(.*)$/);
@@ -142,7 +142,7 @@ class Database {
     }
     newSession() { 
         const t = utils.uuid(); 
-        this.sessions.set(t, { last: Date.now() }); 
+        this.sessions.set(t, { last: Date.now(), created: Date.now() }); 
         return t; 
     }
     check(t) { 
@@ -154,6 +154,22 @@ class Database {
         } 
         s.last = Date.now(); 
         return true; 
+    }
+    getSessions() {
+        const list = [];
+        for (const [token, data] of this.sessions) {
+            list.push({
+                token: token.substring(0, 8) + '...',
+                fullToken: token,
+                created: new Date(data.created).toLocaleString('zh-CN'),
+                lastActive: new Date(data.last).toLocaleString('zh-CN'),
+                expiresIn: Math.max(0, Math.floor((3600000 - (Date.now() - data.last)) / 1000))
+            });
+        }
+        return list.sort((a, b) => b.lastActive.localeCompare(a.lastActive));
+    }
+    deleteSession(token) {
+        return this.sessions.delete(token);
     }
     get(table, key) { return this.data[table]?.[key]; }
     set(table, key, val) { 
@@ -198,8 +214,7 @@ class Database {
     addMsg(m) { 
         this.msgs.unshift({ ...m, id: Date.now(), time: utils.now() }); 
         if (this.msgs.length > this.cfg.settings.maxMsgs) 
-            this.msgs = this.msgs.slice(0, this.cfg.settings.maxMsgs); 
-    }
+            this.msgs = this.msgs.slice(0, this.cfg.settings.maxMsgs);    }
     getMsgs(n) { return this.msgs.slice(0, n || 100); }
     clearMsgs() { this.msgs = []; }
     getStats() {
@@ -324,6 +339,18 @@ class WebServer {
             this.db.set(p[4], p[5], req.body.value); 
             return this.json(res, 200, { ok: true }); 
         }
+        // Token管理API
+        if (url === '/api/tokens') return this.json(res, 200, this.db.getSessions());
+        if (url.startsWith('/api/tokens/delete/') && method === 'POST') { 
+            const t = url.split('/').pop();
+            const deleted = this.db.deleteSession(t);
+            return this.json(res, 200, { ok: deleted }); 
+        }
+        if (url === '/api/tokens/clear' && method === 'POST') { 
+            const count = this.db.sessions.size;
+            this.db.sessions.clear();
+            return this.json(res, 200, { ok: true, count: count }); 
+        }
         if (url === '/api/logout') { 
             this.db.sessions.delete(token); 
             return this.json(res, 200, { ok: true }); 
@@ -362,7 +389,8 @@ label{display:block;margin-bottom:8px;color:#555;font-weight:500}
 input{width:100%;padding:12px 16px;border:2px solid #e0e0e0;border-radius:8px;font-size:1em;transition:border-color 0.3s}
 input:focus{outline:none;border-color:#667eea}
 button{width:100%;padding:14px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;border:none;border-radius:8px;font-size:1em;font-weight:600;cursor:pointer;transition:all 0.3s}
-button:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(102,126,234,0.4)}
+button:hover{
+transform:translateY(-2px);box-shadow:0 8px 20px rgba(102,126,234,0.4)}
 .error{color:#e74c3c;text-align:center;margin-top:16px;font-size:0.9em;padding:10px;background:#fdf2f2;border-radius:6px;display:none}
 .success{color:#27ae60;text-align:center;margin-top:16px;font-size:0.9em;padding:10px;background:#d4edda;border-radius:6px;display:none}
 .version{text-align:center;color:#aaa;margin-top:24px;font-size:0.85em}
@@ -459,6 +487,10 @@ pre{background:#f8f9fa;padding:12px;border-radius:8px;overflow-x:auto;font-size:
 .close-btn{background:none;border:none;font-size:1.5em;cursor:pointer;color:#888}.close-btn:hover{color:#333}
 .footer{text-align:center;color:#888;padding:20px;font-size:0.85em}
 .input-row{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap}.input-row input{flex:1;padding:10px;border:1px solid #ddd;border-radius:6px;min-width:120px}
+.token-display{background:#f8f9fa;padding:12px;border-radius:8px;font-family:monospace;font-size:0.85em;word-break:break-all;border:1px solid #e9ecef;margin-bottom:10px}
+.token-item{padding:12px;border:1px solid #e9ecef;border-radius:8px;margin-bottom:10px;background:#fff}
+.token-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.token-info{color:#666;font-size:0.85em}
 @media(max-width:600px){.header nav{gap:10px}.header a{font-size:0.8em}.logout{right:10px;top:16px;padding:4px 10px}}
 </style></head>
 <body>
@@ -471,6 +503,7 @@ pre{background:#f8f9fa;padding:12px;border-radius:8px;overflow-x:auto;font-size:
 <a onclick="showTab('messages')">💬 消息</a>
 <a onclick="showTab('logs')">📝 日志</a>
 <a onclick="showTab('database')">🗄️ 数据库</a>
+<a onclick="showTab('tokens')">🔑 Token</a>
 </nav>
 <a class="logout" onclick="doLogout()">退出</a>
 </div>
@@ -482,6 +515,7 @@ pre{background:#f8f9fa;padding:12px;border-radius:8px;overflow-x:auto;font-size:
 <div class="tab" onclick="showTab('messages')">💬 消息</div>
 <div class="tab" onclick="showTab('logs')">📝 日志</div>
 <div class="tab" onclick="showTab('database')">🗄️ 数据库</div>
+<div class="tab" onclick="showTab('tokens')">🔑 Token</div>
 </div>
 <div id="tab-stats" class="tab-content active"><div class="card"><h2>系统统计</h2><div class="grid" id="statsGrid"></div></div></div>
 <div id="tab-adapters" class="tab-content"><div class="card"><h2>适配器管理</h2><div id="adapterList"></div></div></div>
@@ -489,6 +523,7 @@ pre{background:#f8f9fa;padding:12px;border-radius:8px;overflow-x:auto;font-size:
 <div id="tab-messages" class="tab-content"><div class="card"><h2>消息记录 <button class="btn btn-danger btn-sm" onclick="clearMsgs()">清空</button></h2><div id="msgList"><div class="empty">暂无消息</div></div></div></div>
 <div id="tab-logs" class="tab-content"><div class="card"><h2>系统日志</h2><pre id="logContent">加载中...</pre></div></div>
 <div id="tab-database" class="tab-content"><div class="card"><h2>数据库操作</h2><div class="input-row"><input id="dbTable" placeholder="表名"><input id="dbKey" placeholder="键名"><button class="btn btn-primary" onclick="dbGet()">查询</button><button class="btn btn-success" onclick="dbSet()">设置</button></div><pre id="dbResult"></pre></div></div>
+<div id="tab-tokens" class="tab-content"><div class="card"><h2>Token管理 <button class="btn btn-danger btn-sm" onclick="clearAllTokens()">清空所有</button></h2><div class="token-display" id="currentToken"></div><div id="tokenList"><div class="empty">加载中...</div></div></div></div>
 </div>
 <div class="modal" id="editorModal">
 <div class="modal-content">
@@ -503,11 +538,8 @@ pre{background:#f8f9fa;padding:12px;border-radius:8px;overflow-x:auto;font-size:
 </div>
 <div class="footer">${CONFIG.name} v${CONFIG.version} | Termux优化版</div>
 <script>
-// 从localStorage获取token
 var token = localStorage.getItem('token');
-if (!token) {
-    window.location.href = '/';
-}
+if (!token) { window.location.href = '/'; }
 
 function api(path, opts) {
     opts = opts || {};
@@ -535,6 +567,8 @@ function showTab(n) {
     if (n === 'plugins') loadPlugins();
     if (n === 'messages') loadMsgs();
     if (n === 'logs') loadLogs();
+    if (n === 'database') { document.getElementById('dbResult').textContent = ''; }
+    if (n === 'tokens') loadTokens();
 }
 
 function loadStats() {
@@ -612,6 +646,26 @@ function loadLogs() {
     });
 }
 
+function loadTokens() {
+    document.getElementById('currentToken').innerHTML = '<strong>当前Token:</strong><br>' + token;
+    api('/api/tokens').then(function(t) {
+        if (t.length === 0) {
+            document.getElementById('tokenList').innerHTML = '<div class="empty">暂无会话</div>';
+            return;
+        }
+        var html = '';
+        for (var i = 0; i < t.length; i++) {
+            var x = t[i];
+            html += '<div class="token-item">';
+            html += '<div class="token-header"><strong>' + x.token + '</strong>';
+            html += '<button class="btn btn-danger btn-sm" onclick="deleteToken(\'' + x.fullToken + '\')">删除</button></div>';
+            html += '<div class="token-info">创建时间: ' + x.created + ' | 最后活跃: ' + x.lastActive + ' | ' + x.expiresIn + '秒后过期</div>';
+            html += '</div>';
+        }
+        document.getElementById('tokenList').innerHTML = html;
+    });
+}
+
 function toggleAdapter(n) {
     api('/api/adapters/toggle/' + n, { method: 'POST' }).then(function() {
         loadAdapters();
@@ -655,7 +709,8 @@ function savePlugin() {
     api('/api/plugins/save/' + n, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: c })
+        body: JSON.stringify({ code: c
+})
     }).then(function() {
         closeModal();
         loadPlugins();
@@ -667,6 +722,22 @@ function deletePlugin(n) {
     if (!confirm('确定删除插件 ' + n + '?')) return;
     api('/api/plugins/delete/' + n, { method: 'POST' }).then(function() {
         loadPlugins();
+        loadStats();
+    });
+}
+
+function deleteToken(t) {
+    if (!confirm('确定删除此会话?')) return;
+    api('/api/tokens/delete/' + t, { method: 'POST' }).then(function() {
+        loadTokens();
+        loadStats();
+    });
+}
+
+function clearAllTokens() {
+    if (!confirm('确定清空所有会话?这将使所有已登录用户退出。')) return;
+    api('/api/tokens/clear', { method: 'POST' }).then(function() {
+        loadTokens();
         loadStats();
     });
 }
@@ -707,7 +778,6 @@ function dbSet() {
     });
 }
 
-// 页面加载时显示统计
 loadStats();
 </script>
 </body></html>`);
