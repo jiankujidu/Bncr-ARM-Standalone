@@ -1,4 +1,4 @@
-# Bncr-ARM Standalone v3.1.0
+# Bncr-ARM Standalone v3.2.0
 
 > 单文件运行的 Bncr 聊天机器人框架，Termux 优化版
 
@@ -46,21 +46,28 @@ pm2 start bncr-arm.js --name bncr
 pm2 save
 ```
 
-## 🔐 访问管理面板
+## 🔐 登录说明
 
+### 账号信息
 - **地址**: http://localhost:9090
 - **账号**: `admin`
 - **密码**: `admin123`
 
-### 局域网访问
+### 登录流程
+1. 打开浏览器访问 `http://localhost:9090`
+2. 输入账号 `admin` 和密码 `admin123`
+3. 点击登录按钮
+4. 登录成功后会自动跳转到管理面板
 
-```bash
-# 查看手机 IP
-ifconfig
+### 常见问题
 
-# 然后在电脑浏览器访问
-http://<手机IP>:9090
-```
+**Q: 登录后显示空白或跳转回登录页？**
+- 清除浏览器缓存后重试
+- 确保浏览器支持 JavaScript
+- 使用现代浏览器（Chrome/Firefox/Safari）
+
+**Q: 忘记密码？**
+- 删除 `BncrData/config/system.json` 文件后重启服务
 
 ## 📱 详细 Termux 教程
 
@@ -154,6 +161,7 @@ node --max-old-space-size=256 bncr-arm.js
 ### 1. 登录失败
 - 确认账号密码正确：`admin` / `admin123`
 - 清除浏览器缓存后重试
+- 检查浏览器是否启用 JavaScript
 
 ### 2. 端口被占用
 ```bash
@@ -164,7 +172,8 @@ PORT=8080 node bncr-arm.js
 ### 3. 无法访问 Web
 ```bash
 # 检查服务是否运行
-curl http://localhost:9090/api/stats
+curl http://localhost:9090/api/stats \
+  -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
 ## 📡 API 接口
