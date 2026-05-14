@@ -1,4 +1,4 @@
-# Bncr-ARM Standalone v3.0.0
+# Bncr-ARM Standalone v3.1.0
 
 > 单文件运行的 Bncr 聊天机器人框架，Termux 优化版
 
@@ -27,6 +27,11 @@ curl -O https://raw.githubusercontent.com/jiankujidu/Bncr-ARM-Standalone/main/bn
 
 # 3. 运行
 node bncr-arm.js
+
+# 4. 访问管理面板
+# 浏览器打开 http://localhost:9090
+# 账号: admin
+# 密码: admin123
 ```
 
 ### 后台运行
@@ -59,13 +64,7 @@ http://<手机IP>:9090
 
 ## 📱 详细 Termux 教程
 
-查看 [TERMUX_GUIDE.md](TERMUX_GUIDE.md) 获取完整的 Termux 安装教程，包括：
-
-- 完整安装步骤
-- 后台运行方法
-- 内网穿透配置
-- 数据备份
-- 常见问题解决
+查看 [TERMUX_GUIDE.md](TERMUX_GUIDE.md) 获取完整的 Termux 安装教程。
 
 ## 🎮 功能介绍
 
@@ -152,29 +151,27 @@ node --max-old-space-size=256 bncr-arm.js
 
 ## 🐛 常见问题
 
-### 1. 端口被占用
+### 1. 登录失败
+- 确认账号密码正确：`admin` / `admin123`
+- 清除浏览器缓存后重试
+
+### 2. 端口被占用
 ```bash
 # 更换端口
 PORT=8080 node bncr-arm.js
 ```
 
-### 2. 权限不足
-```bash
-chmod +x bncr-arm.js
-```
-
 ### 3. 无法访问 Web
 ```bash
 # 检查服务是否运行
-curl http://localhost:9090/api/status
+curl http://localhost:9090/api/stats
 ```
 
 ## 📡 API 接口
 
 | 端点 | 方法 | 说明 |
 |------|------|------|
-| `/api/status` | GET | 系统状态 |
-| `/api/stats` | GET | 统计数据 |
+| `/api/stats` | GET | 系统状态 |
 | `/api/plugins` | GET | 插件列表 |
 | `/api/adapters` | GET | 适配器列表 |
 | `/api/messages` | GET | 消息列表 |
