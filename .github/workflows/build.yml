@@ -1,0 +1,119 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - target: node18-linux-x64
+            output: bncr-arm-linux
+          - target: node18-linux-arm64
+            output: bncr-arm-arm64
+          - target: node18-linuxstatic-x64
+            output: bncr-arm-linuxstatic
+          - target: node18-win-x64
+            output: bncr-arm-win.exe
+          - target: node18-macos-x64
+            output: bncr-arm-macos
+          - target: node18-macos-arm64
+            output: bncr-arm-macos-arm64
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Install pkg
+      run: npm install -g pkg
+
+    - name: Build binary
+      run: |
+        mkdir -p dist
+        pkg -t ${{ matrix.target }} -o dist/${{ matrix.output }} .
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.output }}
+        path: dist/${{ matrix.output }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: dist
+
+    - name: Prepare release files
+      run: |
+        mkdir -p release
+        cp dist/bncr-arm-linux/bncr-arm-linux release/
+        cp dist/bncr-arm-arm64/bncr-arm-arm64 release/
+        cp dist/bncr-arm-linuxstatic/bncr-arm-linuxstatic release/
+        cp dist/bncr-arm-win.exe/bncr-arm-win.exe release/
+        cp dist/bncr-arm-macos/bncr-arm-macos release/
+        cp dist/bncr-arm-macos-arm64/bncr-arm-macos-arm64 release/
+        cp bncr-arm.js release/
+        cp install.sh release/
+        cp package.json release/
+        cp README.md release/ 2>/dev/null || true
+        cd release && sha256sum * > checksums.txt
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: release/*
+        body: |
+          ## Bncr-ARM ${{ github.ref_name }}
+
+          ### 下载
+
+          | 平台 | 文件 |
+          |------|------|
+          | Linux x64 | `bncr-arm-linux` |
+          | Linux ARM64 | `bncr-arm-arm64` |
+          | Linux Static | `bncr-arm-linuxstatic` |
+          | Windows x64 | `bncr-arm-win.exe` |
+          | macOS x64 | `bncr-arm-macos` |
+          | macOS ARM64 | `bncr-arm-macos-arm64` |
+
+          ### 快速安装 (Linux)
+
+          ```bash
+          curl -fsSL https://raw.githubusercontent.com/jiankujidu/Bncr-ARM-Standalone/main/install.sh | bash
+          ```
+
+          ### 手动安装
+
+          ```bash
+          # 下载
+          wget https://github.com/jiankujidu/Bncr-ARM-Standalone/releases/download/${{ github.ref_name }}/bncr-arm-linux
+          chmod +x bncr-arm-linux
+          ./bncr-arm-linux
+          ```
+
+          ### 源码运行
+
+          ```bash
+          node bncr-arm.js
+          ```
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

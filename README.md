@@ -1,201 +1,196 @@
-# Bncr-ARM Standalone v3.2.0
+# Bncr-ARM Standalone
 
-> 单文件运行的 Bncr 聊天机器人框架，Termux 优化版
+ARM Linux 单文件聊天机器人框架
 
-## ✨ 特点
+## 特性
 
-- ✅ **单文件运行** - 仅需 `bncr-arm.js` 一个文件
-- ✅ **零依赖** - 仅需 Node.js，无需 npm install
-- ✅ **Termux 优化** - 专为 Android Termux 环境设计
-- ✅ **Web 管理** - 完整的可视化后台管理
-- ✅ **插件系统** - 在线编辑、启用/禁用插件
-- ✅ **多平台适配器** - Telegram、QQ、微信等
-- ✅ **数据持久化** - JSON 数据库存储
+- ✅ **单文件运行** - 一个文件包含所有功能
+- ✅ **零依赖** - 纯 Node.js，无需额外安装
+- ✅ **内置数据库** - JSON 文件存储，无需外部数据库
+- ✅ **完整 Web 界面** - 响应式管理面板
+- ✅ **插件系统** - 支持热加载插件
+- ✅ **多平台** - Linux x64/ARM64, Windows, macOS
 
-## 🚀 快速开始
+## 快速开始
 
-### Termux 安装（推荐）
+### 方式一：源码运行（推荐）
 
 ```bash
-# 1. 安装 Node.js
-pkg update
-pkg install nodejs-lts
-
-# 2. 下载 Bncr-ARM
-mkdir -p ~/bncr && cd ~/bncr
+# 下载
 curl -O https://raw.githubusercontent.com/jiankujidu/Bncr-ARM-Standalone/main/bncr-arm.js
 
-# 3. 运行
+# 运行
 node bncr-arm.js
 
-# 4. 访问管理面板
-# 浏览器打开 http://localhost:9090
-# 账号: admin
-# 密码: admin123
+# 访问 http://localhost:9090
+# 账号: admin / admin123
 ```
 
-### 后台运行
+### 方式二：自动安装脚本
 
 ```bash
-# 使用 nohup
-nohup node bncr-arm.js > bncr.log 2>&1 &
-
-# 使用 pm2
-npm install -g pm2
-pm2 start bncr-arm.js --name bncr
-pm2 save
+curl -fsSL https://raw.githubusercontent.com/jiankujidu/Bncr-ARM-Standalone/main/install.sh | bash
 ```
 
-## 🔐 登录说明
+### 方式三：下载预编译二进制
 
-### 账号信息
-- **地址**: http://localhost:9090
-- **账号**: `admin`
-- **密码**: `admin123`
+从 [Releases](https://github.com/jiankujidu/Bncr-ARM-Standalone/releases) 下载对应平台的二进制文件：
 
-### 登录流程
-1. 打开浏览器访问 `http://localhost:9090`
-2. 输入账号 `admin` 和密码 `admin123`
-3. 点击登录按钮
-4. 登录成功后会自动跳转到管理面板
-
-### 常见问题
-
-**Q: 登录后显示空白或跳转回登录页？**
-- 清除浏览器缓存后重试
-- 确保浏览器支持 JavaScript
-- 使用现代浏览器（Chrome/Firefox/Safari）
-
-**Q: 忘记密码？**
-- 删除 `BncrData/config/system.json` 文件后重启服务
-
-## 📱 详细 Termux 教程
-
-查看 [TERMUX_GUIDE.md](TERMUX_GUIDE.md) 获取完整的 Termux 安装教程。
-
-## 🎮 功能介绍
-
-### 1. 系统统计
-- 消息总数
-- 用户数量
-- 活跃插件/适配器
-- 运行时间
-- 内存使用
-
-### 2. 适配器管理
-支持平台：
-- Telegram Bot
-- QQ Bot
-- 微信 Bot
-- 系统适配器
-
-### 3. 插件系统
-- 在线编辑插件代码
-- 启用/禁用插件
-- 新建插件
-- 删除插件
-
-### 4. 数据库操作
-- get 表 键 - 查询数据
-- set 表 键 值 - 设置数据
-
-### 5. 消息记录
-- 查看消息历史
-- 清空消息
-
-### 6. 系统日志
-- 实时查看日志
-
-## 🔧 内置插件
-
-### system 插件
-- `ping` - 测试连通
-- `time` - 当前时间
-- `版本` - 版本信息
-- `get 表 键` - 查询数据
-- `set 表 键 值` - 设置数据
-
-### echo 插件
-- `echo 内容` - 回声
-
-### help 插件
-- `帮助` - 显示菜单
-
-## 📁 目录结构
-
-```
-~/bncr/
-├── bncr-arm.js          # 主程序
-└── BncrData/            # 数据目录（自动创建）
-    ├── config/
-    │   └── system.json  # 系统配置
-    ├── db/
-    │   └── data.json    # 数据库
-    ├── logs/
-    │   └── YYYY-MM-DD.log
-    └── plugins/
-        ├── system.js    # 系统插件
-        ├── echo.js      # 回声插件
-        └── help.js      # 帮助插件
-```
-
-## ⚙️ 环境变量
+| 平台 | 文件 |
+|------|------|
+| Linux x64 | `bncr-arm-linux` |
+| Linux ARM64 | `bncr-arm-arm64` |
+| Windows | `bncr-arm-win.exe` |
+| macOS x64 | `bncr-arm-macos` |
+| macOS ARM64 | `bncr-arm-macos-arm64` |
 
 ```bash
-# 修改端口
-PORT=8080 node bncr-arm.js
-
-# 修改数据目录
-BNCR_DATA=/sdcard/bncr-data node bncr-arm.js
+chmod +x bncr-arm-linux
+./bncr-arm-linux
 ```
 
-## 🔋 性能优化
+## 打包成可执行文件
+
+如果你想自己打包成独立可执行文件：
 
 ```bash
-# 限制内存使用
-node --max-old-space-size=256 bncr-arm.js
+# 安装 pkg
+npm install -g pkg
+
+# 打包 Linux x64
+pkg -t node18-linux-x64 -o bncr-arm-linux .
+
+# 打包 Linux ARM64
+pkg -t node18-linux-arm64 -o bncr-arm-arm64 .
+
+# 打包 Windows
+pkg -t node18-win-x64 -o bncr-arm-win.exe .
+
+# 打包 macOS
+pkg -t node18-macos-x64 -o bncr-arm-macos .
 ```
 
-## 🐛 常见问题
+## 目录结构
 
-### 1. 登录失败
-- 确认账号密码正确：`admin` / `admin123`
-- 清除浏览器缓存后重试
-- 检查浏览器是否启用 JavaScript
+```
+BncrData/
+├── config/
+│   └── system.json      # 系统配置
+├── db/                  # JSON 数据库
+├── logs/                # 日志文件
+└── plugins/             # 插件目录
+    ├── system.js
+    ├── echo.js
+    └── help.js
+```
 
-### 2. 端口被占用
+## 环境变量
+
+| 变量 | 说明 | 默认值 |
+|------|------|--------|
+| `PORT` | 服务端口 | `9090` |
+| `BNCR_DATA` | 数据目录 | `./BncrData` |
+
 ```bash
-# 更换端口
-PORT=8080 node bncr-arm.js
+PORT=8080 BNCR_DATA=/opt/bncr node bncr-arm.js
 ```
 
-### 3. 无法访问 Web
+## 插件开发
+
+在 `BncrData/plugins/` 目录创建 `.js` 文件：
+
+```javascript
+// my-plugin.js
+module.exports = async (msg, db) => {
+    // msg: { text, user, group, adapter }
+    // db: { get(table, key), set(table, key, value) }
+    
+    if (msg.text === '你好') {
+        return '你好！我是 Bncr-ARM';
+    }
+    
+    // 查询数据
+    if (msg.text === '查询') {
+        const val = db.get('users', msg.user);
+        return val ? `找到: ${val}` : '未找到';
+    }
+    
+    // 存储数据
+    if (msg.text.startsWith('存储 ')) {
+        const val = msg.text.slice(3);
+        db.set('users', msg.user, val);
+        return '已存储';
+    }
+    
+    return null; // 返回 null 表示不处理
+};
+```
+
+## 系统命令
+
+| 命令 | 说明 |
+|------|------|
+| `ping` | 测试响应 |
+| `time` | 当前时间 |
+| `版本` | 版本信息 |
+| `帮助` | 显示帮助 |
+| `get 表名 键名` | 查询数据 |
+| `set 表名 键名 值` | 设置数据 |
+| `echo 内容` | 回声测试 |
+
+## Web 管理界面
+
+访问 `http://localhost:9090` 进入管理面板：
+
+- **📊 统计** - 系统运行状态
+- **🔌 适配器** - 启用/禁用适配器
+- **🔧 插件** - 管理插件
+- **💬 消息** - 查看消息记录
+- **📝 日志** - 系统日志
+- **🗄️ 数据库** - 数据操作
+- **🔑 Token** - 会话管理
+
+## 系统服务 (systemd)
+
 ```bash
-# 检查服务是否运行
-curl http://localhost:9090/api/stats \
-  -H "Authorization: Bearer YOUR_TOKEN"
+# 复制服务文件
+sudo cp ~/.bncr-arm/bncr-arm.service /etc/systemd/system/
+
+# 启用并启动
+sudo systemctl daemon-reload
+sudo systemctl enable --now bncr-arm
+
+# 查看状态
+sudo systemctl status bncr-arm
+
+# 查看日志
+sudo journalctl -u bncr-arm -f
 ```
 
-## 📡 API 接口
+## 更新
 
-| 端点 | 方法 | 说明 |
-|------|------|------|
-| `/api/stats` | GET | 系统状态 |
-| `/api/plugins` | GET | 插件列表 |
-| `/api/adapters` | GET | 适配器列表 |
-| `/api/messages` | GET | 消息列表 |
-| `/api/logs` | GET | 系统日志 |
+```bash
+# 停止服务
+sudo systemctl stop bncr-arm
 
-## 🔗 相关链接
+# 重新下载/构建
+# ...
 
-- GitHub: https://github.com/jiankujidu/Bncr-ARM-Standalone
-- Bncr 官方: https://anmours.github.io/Bncr
-- Termux: https://termux.dev
+# 启动服务
+sudo systemctl start bncr-arm
+```
 
-## 📄 许可证
+## 技术栈
+
+- **后端**: Node.js (原生 http 模块)
+- **数据库**: JSON 文件存储
+- **前端**: 原生 HTML/CSS/JavaScript
+- **打包**: pkg
+
+## 许可证
 
 MIT License
 
----
+## 作者
 
-**在 Termux 上享受你的 Bncr 机器人吧！** 🤖
+jiankujidu
